@@ -68,3 +68,15 @@ export const productSchema = z
     paymentStatus: z.enum(["PENDING", "PAID", "FAILED"]).optional(),
   })
   .refine((d) => d.status || d.paymentStatus, { message: "Nothing to update" });
+
+  export const cartValidateSchema = z.object({
+    items: z
+      .array(
+        z.object({
+          variantId: z.string().min(1).max(40),
+          qty: z.coerce.number().int().min(1).max(99),
+        }),
+      )
+      .min(1)
+      .max(50),
+  });

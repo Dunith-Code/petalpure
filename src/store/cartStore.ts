@@ -12,12 +12,24 @@ export type CartItem = {
   stock: number;
 };
 
+export type FreshVariant = {
+  variantId: string;
+  slug: string;
+  name: string;
+  image: string | null;
+  variantLabel: string;
+  price: number;
+  stock: number;
+  available: boolean;
+};
+
 type CartState = {
   items: CartItem[];
   add: (item: Omit<CartItem, "qty">, qty?: number) => void;
   setQty: (variantId: string, qty: number) => void;
   remove: (variantId: string) => void;
   clear: () => void;
+  sync: (fresh: FreshVariant[]) => void;
 };
 
 export const useCart = create<CartState>()(
@@ -46,6 +58,26 @@ export const useCart = create<CartState>()(
         })),
       remove: (variantId) => set((s) => ({ items: s.items.filter((i) => i.variantId !== variantId) })),
       clear: () => set({ items: [] }),
+      // Replace local prices and stock with the server's truth; drop items that are gone or sold out
+      sync: (fresh) =>
+        set((s) => ({
+          items: s.items.flatMap((i) => {
+            const f = fresh.find((x) => x.variantId === i.variantId);
+            if (!f || !f.available || f.stock === 0) return [];
+            return [
+              {
+                ...i,
+                slug: f.slug,
+                name: f.name,
+                image: f.image,
+                variantLabel: f.variantLabel,
+                price: f.price,
+                stock: f.stock,
+                qty: Math.min(i.qty, f.stock),
+              },
+            ];
+          }),
+        })),
     }),
     { name: "petalpure-cart" },
   ),
