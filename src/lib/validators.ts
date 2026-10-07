@@ -57,3 +57,7 @@ export const productSchema = z
     message: "Each variant needs a unique SKU",
     path: ["variants"],
   });
+
+  export const stockSchema = z.object({
+    stock: z.coerce.number().int("Stock must be a whole number").min(0, "Stock cannot be negative").max(1_000_000),
+  });
