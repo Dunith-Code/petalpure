@@ -24,12 +24,3 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   );
 }
 
-export default function Loading() {
-  return (
-    <div aria-busy="true" aria-label="Loading" className="animate-pulse space-y-4">
-      <div className="h-9 w-48 rounded-xl bg-blush-100" />
-      <div className="h-64 rounded-card bg-blush-100" />
-    </div>
-  );
-}
-
