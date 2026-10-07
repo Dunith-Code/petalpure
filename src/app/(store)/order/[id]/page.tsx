@@ -1,0 +1,93 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/db";
+import { buildOrderMessage, whatsappLink } from "@/lib/whatsapp";
+
+export const metadata = { title: "Order received | PetalPure" };
+export const dynamic = "force-dynamic";
+
+const rs = (n: number) => `Rs. ${n.toLocaleString("en-LK")}`;
+
+export default async function OrderConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  // The id is an unguessable cuid, so only the person who placed the order has the link
+  const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
+  if (!order) notFound();
+
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+  const isWhatsApp = order.paymentMethod === "WHATSAPP";
+
+  const link =
+    isWhatsApp && number
+      ? whatsappLink(
+          number,
+          buildOrderMessage({
+            orderNumber: order.orderNumber,
+            customerName: order.customerName,
+            phone: order.phone,
+            address: order.address,
+            city: order.city,
+            subtotal: Number(order.subtotal),
+            shipping: Number(order.shipping),
+            total: Number(order.total),
+            items: order.items,
+          }),
+        )
+      : null;
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <div className="rounded-card bg-sage-100 px-6 py-8 text-center">
+        <p className="text-sm uppercase tracking-widest text-ink/70">Order saved</p>
+        <h1 className="mt-1 text-4xl font-semibold">Thank you, {order.customerName.split(" ")[0]}!</h1>
+        <p className="mt-2">Your order number is <strong>{order.orderNumber}</strong></p>
+      </div>
+
+      {isWhatsApp && (
+        <div className="mt-6 rounded-card border border-blush-100 bg-white p-6 text-center">
+          <h2 className="text-2xl font-semibold">One last step</h2>
+          <p className="mt-1 text-sm text-muted">
+            Send your order to us on WhatsApp so we can confirm it and arrange payment.
+          </p>
+          {link ? (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-block rounded-full bg-rose-500 px-8 py-3 font-medium text-white transition hover:bg-rose-600"
+            >
+              Send order on WhatsApp
+            </a>
+          ) : (
+            <p className="mt-4 rounded-lg bg-blush-50 px-3 py-2 text-sm text-rose-600">
+              WhatsApp isn&apos;t configured yet. Please contact us and quote {order.orderNumber}.
+            </p>
+          )}
+        </div>
+      )}
+
+      <section className="mt-6 overflow-x-auto rounded-card border border-blush-100 bg-white">
+        <table className="w-full text-left text-sm">
+          <tbody>
+            {order.items.map((i) => (
+              <tr key={i.id} className="border-b border-blush-100">
+                <td className="px-4 py-3">{i.productName} <span className="text-muted">({i.variantLabel}) × {i.quantity}</span></td>
+                <td className="whitespace-nowrap px-4 py-3 text-right">{rs(Number(i.unitPrice) * i.quantity)}</td>
+              </tr>
+            ))}
+            <tr><td className="px-4 pt-3 text-muted">Subtotal</td><td className="px-4 pt-3 text-right">{rs(Number(order.subtotal))}</td></tr>
+            <tr><td className="px-4 py-1 text-muted">Delivery</td><td className="px-4 py-1 text-right">{rs(Number(order.shipping))}</td></tr>
+            <tr className="font-semibold"><td className="px-4 pb-3">Total</td><td className="px-4 pb-3 text-right">{rs(Number(order.total))}</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p className="mt-4 text-center text-sm text-muted">
+        Delivering to {order.address}, {order.city}
+      </p>
+      <p className="mt-6 text-center">
+        <Link href="/products" className="font-medium text-rose-600 hover:underline">Continue shopping →</Link>
+      </p>
+    </div>
+  );
+}
