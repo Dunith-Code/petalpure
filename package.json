@@ -2,13 +2,12 @@
   "name": "petalpure",
   "version": "0.1.0",
   "private": true,
-  "postinstall": "prisma generate",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma skills sync || exit 0"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -33,15 +32,14 @@
     "typescript": "^5"
   },
   "prisma": {
-  "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
-
   "allowScripts": {
-  "@prisma/client": true,
-  "@prisma/engines": true,
-  "prisma": true,
-  "argon2": true,
-  "esbuild": true,
-  "unrs-resolver": true
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "prisma": true,
+    "argon2": true,
+    "esbuild": true,
+    "unrs-resolver": true
   }
 }
