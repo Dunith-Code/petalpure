@@ -19,8 +19,8 @@ export async function POST(req: Request) {
   try {
     const order = await createOrder(parsed.data, session?.userId ?? null);
     return NextResponse.json({ orderId: order.id, orderNumber: order.orderNumber }, { status: 201 });
-  } catch (e) {
+    } catch (e) {
     if (e instanceof CheckoutError) return NextResponse.json({ error: e.message }, { status: e.status });
+    console.error("[checkout] unexpected error", e); // visible in Vercel logs only
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
   }
-}
