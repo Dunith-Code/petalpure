@@ -82,20 +82,25 @@ export const productSchema = z
   });
 
 
-  export const checkoutSchema = z.object({
-    customerName: z.string().trim().min(2, "Please enter your name").max(80),
-    email: z
-      .union([z.literal(""), z.string().trim().toLowerCase().email("Enter a valid email address").max(254)])
-      .optional(),
-    phone: z
-      .string()
-      .trim()
-      .transform((v) => v.replace(/[\s-]/g, ""))
-      .refine((v) => /^(\+94|0)\d{9}$/.test(v), "Enter a valid phone number, e.g. 0771234567"),
-    address: z.string().trim().min(5, "Enter your delivery address").max(200),
-    city: z.string().trim().min(2, "Enter your city").max(60),
-    paymentMethod: z.enum(["WHATSAPP"]), // PayHere is added in the next step
-    items: cartValidateSchema.shape.items,
-  });
+  export const checkoutSchema = z
+    .object({
+      customerName: z.string().trim().min(2, "Please enter your name").max(80),
+      email: z
+        .union([z.literal(""), z.string().trim().toLowerCase().email("Enter a valid email address").max(254)])
+        .optional(),
+      phone: z
+        .string()
+        .trim()
+        .transform((v) => v.replace(/[\s-]/g, ""))
+        .refine((v) => /^(\+94|0)\d{9}$/.test(v), "Enter a valid phone number, e.g. 0771234567"),
+      address: z.string().trim().min(5, "Enter your delivery address").max(200),
+      city: z.string().trim().min(2, "Enter your city").max(60),
+      paymentMethod: z.enum(["PAYHERE", "WHATSAPP"]),
+      items: cartValidateSchema.shape.items,
+    })
+    .refine((d) => d.paymentMethod !== "PAYHERE" || !!d.email, {
+      message: "Email is required for online payment",
+      path: ["email"],
+    });
 
   export type CheckoutInput = z.output<typeof checkoutSchema>;

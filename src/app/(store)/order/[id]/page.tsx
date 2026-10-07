@@ -2,23 +2,36 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { buildOrderMessage, whatsappLink } from "@/lib/whatsapp";
+import PayNowButton from "@/components/store/PayNowButton";
+import AutoRefresh from "@/components/store/AutoRefresh";
 
-export const metadata = { title: "Order received | PetalPure" };
+export const metadata = { title: "Your order | PetalPure" };
 export const dynamic = "force-dynamic";
 
 const rs = (n: number) => `Rs. ${n.toLocaleString("en-LK")}`;
 
-export default async function OrderConfirmationPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function OrderConfirmationPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ cancelled?: string }>;
+}) {
   const { id } = await params;
+  const sp = await searchParams;
   // The id is an unguessable cuid, so only the person who placed the order has the link
   const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) notFound();
 
-  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  const isWhatsApp = order.paymentMethod === "WHATSAPP";
+  const isPayHere = order.paymentMethod === "PAYHERE";
+  const paid = order.paymentStatus === "PAID";
+  const closed = order.status === "CANCELLED";
+  const canPay = isPayHere && !paid && !closed;
+  const cancelledAtPayHere = sp.cancelled === "1";
 
+  const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
   const link =
-    isWhatsApp && number
+    !isPayHere && number
       ? whatsappLink(
           number,
           buildOrderMessage({
@@ -38,12 +51,12 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
   return (
     <div className="mx-auto max-w-2xl">
       <div className="rounded-card bg-sage-100 px-6 py-8 text-center">
-        <p className="text-sm uppercase tracking-widest text-ink/70">Order saved</p>
+        <p className="text-sm uppercase tracking-widest text-ink/70">{paid ? "Payment received" : "Order saved"}</p>
         <h1 className="mt-1 text-4xl font-semibold">Thank you, {order.customerName.split(" ")[0]}!</h1>
         <p className="mt-2">Your order number is <strong>{order.orderNumber}</strong></p>
       </div>
 
-      {isWhatsApp && (
+      {!isPayHere && (
         <div className="mt-6 rounded-card border border-blush-100 bg-white p-6 text-center">
           <h2 className="text-2xl font-semibold">One last step</h2>
           <p className="mt-1 text-sm text-muted">
@@ -66,6 +79,47 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         </div>
       )}
 
+      {isPayHere && (
+        <div className="mt-6 rounded-card border border-blush-100 bg-white p-6 text-center" aria-live="polite">
+          {paid && closed ? (
+            <>
+              <h2 className="text-2xl font-semibold">We received your payment</h2>
+              <p className="mt-1 text-sm text-muted">
+                Your order had expired before payment arrived. Please contact us and quote {order.orderNumber}, and we&apos;ll sort it out.
+              </p>
+            </>
+          ) : paid ? (
+            <>
+              <h2 className="text-2xl font-semibold">Payment received</h2>
+              <p className="mt-1 text-sm text-muted">We&apos;ll start preparing your order right away.</p>
+            </>
+          ) : closed ? (
+            <>
+              <h2 className="text-2xl font-semibold">Order cancelled</h2>
+              <p className="mt-1 text-sm text-muted">
+                Payment wasn&apos;t completed in time, so the items went back to stock. You&apos;re welcome to place a new order.
+              </p>
+            </>
+          ) : cancelledAtPayHere ? (
+            <>
+              <h2 className="text-2xl font-semibold">Payment cancelled</h2>
+              <p className="mt-1 text-sm text-muted">Your items are held for a short time. You can try again.</p>
+              <div className="mt-4 flex justify-center"><PayNowButton orderId={order.id} label="Try payment again" /></div>
+            </>
+          ) : (
+            <>
+              <AutoRefresh />
+              <h2 className="text-2xl font-semibold">Confirming your payment…</h2>
+              <p className="mt-1 text-sm text-muted">
+                This usually takes a few seconds. If you haven&apos;t paid yet, you can do it now.
+              </p>
+              <div className="mt-4 flex justify-center"><PayNowButton orderId={order.id} /></div>
+            </>
+          )}
+          {canPay && <p className="mt-3 text-xs text-muted">Payments are processed securely by PayHere.</p>}
+        </div>
+      )}
+
       <section className="mt-6 overflow-x-auto rounded-card border border-blush-100 bg-white">
         <table className="w-full text-left text-sm">
           <tbody>
@@ -82,9 +136,7 @@ export default async function OrderConfirmationPage({ params }: { params: Promis
         </table>
       </section>
 
-      <p className="mt-4 text-center text-sm text-muted">
-        Delivering to {order.address}, {order.city}
-      </p>
+      <p className="mt-4 text-center text-sm text-muted">Delivering to {order.address}, {order.city}</p>
       <p className="mt-6 text-center">
         <Link href="/products" className="font-medium text-rose-600 hover:underline">Continue shopping →</Link>
       </p>

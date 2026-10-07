@@ -5,17 +5,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/store/cartStore";
 import { SHIPPING_FEE } from "@/lib/constants";
+import { startPayHere } from "@/lib/payhereClient";
 
 const rs = (n: number) => `Rs. ${n.toLocaleString("en-LK")}`;
 const field =
   "w-full rounded-xl border border-blush-200 bg-white px-3 py-2.5 text-ink focus:border-rose-500 focus:outline-none focus:ring-2 focus:ring-blush-200";
 const labelCls = "mb-1 block text-sm font-medium";
 
+type Method = "PAYHERE" | "WHATSAPP";
+
 export default function CheckoutForm({ defaults }: { defaults: { name: string; email: string } }) {
   const router = useRouter();
   const items = useCart((s) => s.items);
   const clear = useCart((s) => s.clear);
   const [mounted, setMounted] = useState(false);
+  const [method, setMethod] = useState<Method>("PAYHERE");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -49,24 +53,53 @@ export default function CheckoutForm({ defaults }: { defaults: { name: string; e
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          paymentMethod: "WHATSAPP",
+          paymentMethod: method,
           items: items.map((i) => ({ variantId: i.variantId, qty: i.qty })), // prices are never sent
         }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(json.error || "Something went wrong");
+        setBusy(false);
         return;
       }
       setDone(true);
       clear();
+
+      if (method === "PAYHERE") {
+        try {
+          await startPayHere(json.orderId); // navigates away to PayHere
+          return;
+        } catch {
+          // The order is saved; the confirmation page offers a "Pay now" button
+        }
+      }
       router.push(`/order/${json.orderId}`);
     } catch {
       setError("Network error. Please try again.");
-    } finally {
       setBusy(false);
     }
   }
+
+  const option = (value: Method, title: string, text: string) => (
+    <label
+      className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+        method === value ? "border-rose-500 bg-blush-50" : "border-blush-200 bg-white"
+      }`}
+    >
+      <input
+        type="radio"
+        name="method"
+        checked={method === value}
+        onChange={() => setMethod(value)}
+        className="mt-1 accent-rose-500"
+      />
+      <span>
+        <span className="block text-sm font-medium">{title}</span>
+        <span className="block text-xs text-muted">{text}</span>
+      </span>
+    </label>
+  );
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
@@ -83,7 +116,7 @@ export default function CheckoutForm({ defaults }: { defaults: { name: string; e
             <input id="phone" name="phone" type="tel" autoComplete="tel" placeholder="0771234567" required className={field} />
           </div>
           <div>
-            <label htmlFor="email" className={labelCls}>Email (optional)</label>
+            <label htmlFor="email" className={labelCls}>Email{method === "PAYHERE" ? "" : " (optional)"}</label>
             <input id="email" name="email" type="email" autoComplete="email" defaultValue={defaults.email} className={field} />
           </div>
         </div>
@@ -96,6 +129,12 @@ export default function CheckoutForm({ defaults }: { defaults: { name: string; e
           <input id="city" name="city" autoComplete="address-level2" required className={field} />
         </div>
 
+        <fieldset className="space-y-2 pt-2">
+          <legend className="mb-1 text-sm font-medium">Payment method</legend>
+          {option("PAYHERE", "Pay online with PayHere", "Card payment on PayHere's secure page.")}
+          {option("WHATSAPP", "Order via WhatsApp", "We save your order, then you send it to us on WhatsApp to arrange payment.")}
+        </fieldset>
+
         {error && (
           <div role="alert" className="rounded-lg bg-blush-50 px-3 py-2 text-sm text-rose-600">
             {error}{" "}
@@ -107,11 +146,8 @@ export default function CheckoutForm({ defaults }: { defaults: { name: string; e
           disabled={busy}
           className="w-full rounded-full bg-rose-500 py-3 font-medium text-white transition hover:bg-rose-600 disabled:opacity-60"
         >
-          {busy ? "Placing your order…" : "Place order and send on WhatsApp"}
+          {busy ? "Placing your order…" : method === "PAYHERE" ? "Place order and pay" : "Place order and send on WhatsApp"}
         </button>
-        <p className="text-center text-xs text-muted">
-          We save your order first, then you send it to us on WhatsApp so we can confirm and arrange payment.
-        </p>
       </form>
 
       <aside className="h-fit rounded-card border border-blush-100 bg-white p-5">

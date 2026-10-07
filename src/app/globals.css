@@ -33,3 +33,8 @@ input, select, textarea {
   color: var(--color-ink);
   background-color: #fff;
 }
+
+:focus-visible {
+  outline: 2px solid var(--color-rose-500);
+  outline-offset: 2px;
+}
