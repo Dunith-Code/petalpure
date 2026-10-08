@@ -1,6 +1,7 @@
 # 🌸 PetalPure: Cosmetics & Beauty E-Commerce Store
 
 [![Live demo](https://img.shields.io/badge/Live_demo-petalpure.vercel.app-e11d48?logo=vercel&logoColor=white)](https://petalpure.vercel.app)
+[![CI](https://github.com/Dunith-Code/petalpure/actions/workflows/ci.yml/badge.svg)](https://github.com/Dunith-Code/petalpure/actions/workflows/ci.yml)
 ![Vercel](https://img.shields.io/badge/Hosted_on-Vercel-000000?logo=vercel&logoColor=white)
 ![Status](https://img.shields.io/badge/PayHere-Sandbox-0ea5e9)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
@@ -199,7 +200,6 @@ The admin then confirms the order in the chat and marks payment as received.
 - **Passwords:** Argon2 hashes. Roles are assigned on the server only, so registration always creates a `CUSTOMER`.
 - **Sessions:** JWT in an `httpOnly`, `SameSite=Lax`, `Secure` (in production) cookie.
 - **Admin protection in two layers:** `proxy.ts` blocks `/admin` and `/api/admin` for non-admins, and every admin handler calls `requireAdmin()`, which re-checks the role in the database.
-- **CSRF defence in depth:** on top of `SameSite=Lax`, state-changing API requests from another origin are rejected.
 - **The server never trusts the client:** prices, totals and stock are recomputed server-side.
 - **Validation:** Zod on every API input. Prisma uses parameterised queries, and React escapes rendered output.
 - **Login hardening:** generic error message, equalised timing, and rate limiting on auth, cart, checkout and payment endpoints.
@@ -221,7 +221,7 @@ The application runs on Vercel with Neon PostgreSQL (function region next to the
 
 ## 🚀 Local setup
 
-Requirements: Node.js 20+, PostgreSQL, a free Cloudinary account.
+Requirements: Node.js 20.9+ (22 recommended), PostgreSQL, a free Cloudinary account.
 
 ```bash
 git clone https://github.com/Dunith-Code/petalpure.git
@@ -237,8 +237,6 @@ npm run dev
 Open http://localhost:3000. Optional sample orders: `npx tsx prisma/seed-orders.ts`.
 
 To change the admin password on any database, set `DATABASE_URL`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` for the session and run `npx tsx prisma/set-admin-password.ts`.
-
----
 
 ### 🔑 Environment variables
 
@@ -292,3 +290,7 @@ GitHub Actions runs all three on every push and pull request. Commits follow the
 - **Neon's free tier sleeps when idle**, so the first request after a quiet period can be slow.
 
 ---
+
+## 🔮 Future improvements
+
+Redis-based rate limiting, a Content-Security-Policy, email notifications, refunds, password reset, delivery zones and discount codes, end-to-end tests, and a stored minimum-price column for sorting.
