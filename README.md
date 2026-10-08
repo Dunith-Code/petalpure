@@ -276,8 +276,7 @@ GitHub Actions runs all three on every push and pull request. Commits follow the
 ---
 
 ## ⚠️ Assumptions and limitations
-
-- **PayHere registration:** the sandbox rejected `petalpure.vercel.app` as a Domain, because shared-hosting subdomains are not accepted. The site was therefore registered as an **App** entry to obtain a sandbox Merchant ID and secret, and the integration then worked end to end. A production deployment would register a real top-level domain.
+- **PayHere sandbox limitation:** PayHere only accepts a top-level domain or a mobile app package name when registering a domain/app entry, and rejects `*.vercel.app` because it is a shared-hosting subdomain. The sandbox merchant entry is registered on a local origin, and the end-to-end payment flow is demonstrated on `http://localhost:3000`. The deployed server-side callback is verified: a forged callback returns **400** and the scheduled-job endpoint without its secret returns **401**. A production deployment would register a real top-level domain.
 - **WhatsApp orders:** payment is arranged in the chat (bank transfer or cash on delivery), and the admin marks it as paid manually.
 - **Guest checkout** is allowed. The order confirmation page is reachable through an unguessable order ID.
 - **Delivery** is a flat fee (Rs. 350). There are no shipping zones, taxes or discount codes.
