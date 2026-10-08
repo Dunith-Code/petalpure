@@ -19,7 +19,7 @@ A responsive full-stack online store for a cosmetics retailer (creams, shampoos,
 
 - **Live app:** https://petalpure.vercel.app
 - **Repository:** https://github.com/Dunith-Code/petalpure
-- **Admin panel:** https://petalpure.vercel.app/admin (credentials supplied separately with the submission)
+- **Admin panel:** https://petalpure.vercel.app/admin
 
 ---
 
