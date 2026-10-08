@@ -1,6 +1,7 @@
 # 🌸 PetalPure: Cosmetics & Beauty E-Commerce Store
 
 [![Live demo](https://img.shields.io/badge/Live_demo-petalpure.vercel.app-e11d48?logo=vercel&logoColor=white)](https://petalpure.vercel.app)
+![Vercel](https://img.shields.io/badge/Hosted_on-Vercel-000000?logo=vercel&logoColor=white)
 ![Status](https://img.shields.io/badge/PayHere-Sandbox-0ea5e9)
 ![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
@@ -10,9 +11,8 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?logo=postgresql&logoColor=white)
 ![Zod](https://img.shields.io/badge/Zod-validation-3E67B1?logo=zod&logoColor=white)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-images-3448C5?logo=cloudinary&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-tests-6E9F18?logo=vitest&logoColor=white)
-![Vercel](https://img.shields.io/badge/Hosted_on-Vercel-000000?logo=vercel&logoColor=white)
 ![WhatsApp](https://img.shields.io/badge/Order_via-WhatsApp-25D366?logo=whatsapp&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-tests-6E9F18?logo=vitest&logoColor=white)
 
 A responsive full-stack online store for a cosmetics retailer (creams, shampoos, lotions, skincare), with a customer storefront and an admin panel.
 
@@ -265,7 +265,7 @@ To change the admin password on any database, set `DATABASE_URL`, `ADMIN_EMAIL` 
 
 ---
 
-## ✅ Code quality
+## 🧹 Code quality
 
 ```bash
 npm run lint        # ESLint
