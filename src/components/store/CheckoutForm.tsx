@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/store/cartStore";
 import { SHIPPING_FEE } from "@/lib/constants";
 import { startPayHere } from "@/lib/payhereClient";
+import { useHydrated } from "@/lib/useHydrated";
 
 const rs = (n: number) => `Rs. ${n.toLocaleString("en-LK")}`;
 const field =
@@ -18,13 +19,11 @@ export default function CheckoutForm({ defaults }: { defaults: { name: string; e
   const router = useRouter();
   const items = useCart((s) => s.items);
   const clear = useCart((s) => s.clear);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [method, setMethod] = useState<Method>("PAYHERE");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   if (!mounted) return <p className="py-16 text-center text-muted">Loading…</p>;
 

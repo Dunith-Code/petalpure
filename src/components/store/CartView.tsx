@@ -5,16 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart, type FreshVariant } from "@/store/cartStore";
 import { SHIPPING_FEE } from "@/lib/constants";
+import { useHydrated } from "@/lib/useHydrated";
 
 const rs = (n: number) => `Rs. ${n.toLocaleString("en-LK")}`;
 
 export default function CartView() {
   const { items, setQty, remove, clear, sync } = useCart();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useHydrated();
   const [notices, setNotices] = useState<string[]>([]);
 
   useEffect(() => {
-    setMounted(true);
     const current = useCart.getState().items;
     if (current.length === 0) return;
 

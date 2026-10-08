@@ -46,8 +46,9 @@ export default function InventoryTable({ rows }: { rows: InvRow[] }) {
         return;
       }
       setEdits((e) => {
-        const { [r.id]: _removed, ...rest } = e;
-        return rest;
+        const next = { ...e };
+        delete next[r.id];
+        return next;
       });
       router.refresh();
     } catch {

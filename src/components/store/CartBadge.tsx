@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useCart } from "@/store/cartStore";
+import { useHydrated } from "@/lib/useHydrated";
 
 export default function CartBadge() {
   const count = useCart((s) => s.items.reduce((n, i) => n + i.qty, 0));
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   return (
     <Link

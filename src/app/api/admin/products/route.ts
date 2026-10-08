@@ -23,7 +23,15 @@ export async function POST(req: Request) {
         ...data,
         brand: brand || null,
         slug: await uniqueProductSlug(data.name),
-        variants: { create: variants.map(({ id: _id, ...v }) => v) },
+        variants: {
+          // List the fields explicitly so only known columns reach the database
+          create: variants.map((v) => ({
+            label: v.label,
+            sku: v.sku,
+            price: v.price,
+            stock: v.stock,
+          })),
+        },
       },
     });
     return NextResponse.json({ product }, { status: 201 });
@@ -31,6 +39,7 @@ export async function POST(req: Request) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return NextResponse.json({ error: "A variant SKU already exists. SKUs must be unique." }, { status: 409 });
     }
+    console.error("[admin/products] create failed", e); // visible in server logs only
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

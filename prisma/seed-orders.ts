@@ -46,7 +46,16 @@ async function main() {
     });
 
     const subtotal = items.reduce((sum, i) => sum + Number(i.unitPrice) * i.quantity, 0);
-    const { items: _skip, ...order } = s;
+    const order = {
+      orderNumber: s.orderNumber,
+      customerName: s.customerName,
+      phone: s.phone,
+      address: s.address,
+      city: s.city,
+      paymentMethod: s.paymentMethod,
+      paymentStatus: s.paymentStatus,
+      status: s.status,
+    };
 
     await prisma.order.create({
       data: {
