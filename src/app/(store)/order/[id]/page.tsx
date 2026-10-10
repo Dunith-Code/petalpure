@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { buildOrderMessage, whatsappLink } from "@/lib/whatsapp";
 import PayNowButton from "@/components/store/PayNowButton";
 import AutoRefresh from "@/components/store/AutoRefresh";
+import ClearCartWhenPaid from "@/components/store/ClearCartWhenPaid";
 
 export const metadata = { title: "Your order | PetalPure" };
 export const dynamic = "force-dynamic";
@@ -29,27 +30,31 @@ export default async function OrderConfirmationPage({
   const canPay = isPayHere && !paid && !closed;
   const cancelledAtPayHere = sp.cancelled === "1";
 
+  // Built for every order: WhatsApp orders use it as the main step, and
+  // unpaid PayHere orders offer it as a fallback
   const number = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
-  const link =
-    !isPayHere && number
-      ? whatsappLink(
-          number,
-          buildOrderMessage({
-            orderNumber: order.orderNumber,
-            customerName: order.customerName,
-            phone: order.phone,
-            address: order.address,
-            city: order.city,
-            subtotal: Number(order.subtotal),
-            shipping: Number(order.shipping),
-            total: Number(order.total),
-            items: order.items,
-          }),
-        )
-      : null;
+  const link = number
+    ? whatsappLink(
+        number,
+        buildOrderMessage({
+          orderNumber: order.orderNumber,
+          customerName: order.customerName,
+          phone: order.phone,
+          address: order.address,
+          city: order.city,
+          subtotal: Number(order.subtotal),
+          shipping: Number(order.shipping),
+          total: Number(order.total),
+          items: order.items,
+        }),
+      )
+    : null;
 
   return (
     <div className="mx-auto max-w-2xl">
+      {/* The cart is only emptied once payment is confirmed, so going back never loses it */}
+      {paid && <ClearCartWhenPaid />}
+
       <div className="rounded-card bg-sage-100 px-6 py-8 text-center">
         <p className="text-sm uppercase tracking-widest text-ink/70">{paid ? "Payment received" : "Order saved"}</p>
         <h1 className="mt-1 text-4xl font-semibold">Thank you, {order.customerName.split(" ")[0]}!</h1>
@@ -117,6 +122,19 @@ export default async function OrderConfirmationPage({
             </>
           )}
           {canPay && <p className="mt-3 text-xs text-muted">Payments are processed securely by PayHere.</p>}
+          {canPay && link && (
+            <p className="mt-4 text-sm text-muted">
+              Having trouble paying online?{" "}
+              <a
+                href={link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-rose-600 hover:underline"
+              >
+                Send this order on WhatsApp instead
+              </a>
+            </p>
+          )}
         </div>
       )}
 

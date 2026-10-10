@@ -24,6 +24,17 @@ A responsive full-stack online store for a cosmetics retailer (creams, shampoos,
 ---
 
 
+## 🔑 Reviewer access
+
+- Live app: https://petalpure.vercel.app
+- Admin panel: https://petalpure.vercel.app/admin
+- Admin email: admin@petalpure.lk
+- Admin password: admin123456abc123456
+- PayHere is in Sandbox mode. Use PayHere's sandbox test card, with any future expiry and CVV.
+- WhatsApp orders open a prefilled message to the business number.
+
+---
+
 ## 🧩 Features
 
 **🛍️ Storefront**

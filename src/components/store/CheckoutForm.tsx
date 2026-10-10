@@ -63,15 +63,17 @@ export default function CheckoutForm({ defaults }: { defaults: { name: string; e
         return;
       }
       setDone(true);
-      clear();
 
       if (method === "PAYHERE") {
+        // Keep the cart until payment is confirmed, so Back/cancel never loses it
         try {
           await startPayHere(json.orderId); // navigates away to PayHere
           return;
         } catch {
           // The order is saved; the confirmation page offers a "Pay now" button
         }
+      } else {
+        clear(); // WhatsApp orders are final once saved
       }
       router.push(`/order/${json.orderId}`);
     } catch {
